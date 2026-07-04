@@ -1,8 +1,8 @@
 name: "UUAID Init — give your repo's agent a permanent identity"
+# Marketplace hard cap: description < 125 chars.
 description: >-
-  Mints a permanent UUAID for this repository's AI agent (or reuses the one in
-  .uuaid) and emits a live trust-badge snippet for the README. The identity is
-  publicly verifiable and anchored on Polygon.
+  Mint a permanent, verifiable UUAID for this repo's AI agent and emit a live
+  trust-badge snippet for the README.
 author: "UUAID Foundation"
 branding:
   icon: "shield"
