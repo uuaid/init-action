@@ -1,0 +1,52 @@
+name: "UUAID Init — give your repo's agent a permanent identity"
+description: >-
+  Mints a permanent UUAID for this repository's AI agent (or reuses the one in
+  .uuaid) and emits a live trust-badge snippet for the README. The identity is
+  publicly verifiable and anchored on Polygon.
+author: "UUAID Foundation"
+branding:
+  icon: "shield"
+  color: "purple"
+
+inputs:
+  api-key:
+    description: "UUAID partner API key (store as a repo secret; free key: POST https://api.uuaid.org/signup)"
+    required: true
+  agent-name:
+    description: "Display name for the agent identity"
+    required: true
+  description:
+    description: "What this agent does"
+    required: false
+    default: ""
+
+outputs:
+  uuaid:
+    description: "The agent's permanent UUAID"
+    value: ${{ steps.mint.outputs.uuaid }}
+  badge-markdown:
+    description: "Markdown snippet for a live verification badge"
+    value: ${{ steps.mint.outputs.badge }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: mint
+      shell: bash
+      env:
+        UUAID_API_KEY: ${{ inputs.api-key }}
+      run: |
+        set -euo pipefail
+        if [ -f .uuaid ]; then
+          UUAID=$(cat .uuaid)
+          echo "Reusing existing identity: $UUAID"
+        else
+          RES=$(npx -y @uuaid/cli register "${{ inputs.agent-name }}" --description "${{ inputs.description }}")
+          UUAID=$(echo "$RES" | python3 -c "import sys,json;print(json.load(sys.stdin)['uuaid'])")
+          echo "$UUAID" > .uuaid
+          echo "Minted permanent identity: $UUAID"
+        fi
+        PATHPART=$(echo "$UUAID" | cut -d: -f2- | tr ':' '/')
+        BADGE="[![UUAID verified](https://api.uuaid.org/badge/agent/$UUAID.svg)](https://registry.uuaid.org/uuaid/$PATHPART)"
+        echo "uuaid=$UUAID" >> "$GITHUB_OUTPUT"
+        echo "badge=$BADGE" >> "$GITHUB_OUTPUT"
